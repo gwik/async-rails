@@ -4,7 +4,7 @@ development:
   adapter: em_mysql2
   database: widgets
   username: root
-  pool: 250
+  pool: 100
   timeout: 5000
 
 # Warning: The database defined as "test" will be erased and

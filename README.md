@@ -1,4 +1,57 @@
-# Async Rails 3.1 stack demo
+# Async Rails 3.2 stack demo with Ruby 2.0
+
+This demo from Ilya Grigorik was demonstrating how to take advantage of
+em-synchrony to run rails in an asynchronous (Event machine) environment.
+It worked great for a demo, however in a real application you'd
+soon reach the 4kb stack limit of ruby <2.0 fibers. Pretty deceptive...
+
+This was made possible by the use of fibers to [make asynchrounous code behave
+synchonous](http://www.igvita.com/2010/03/22/untangling-evented-code-with-ruby-fibers/)
+
+Ruby 2.0 now allows you to set the maximun stack size of a fiber through an
+environment variable `RUBY_FIBER_VM_STACK_SIZE`.
+
+To demonstate this, I added an action to the demo that recurse and until the
+stack is full.
+
+Install ruby 2.0, rubygems, clone this project and run bundler etc...
+
+Run rails server (thin):
+
+    rails s
+
+In an other shell run:
+
+    curl -i "http://localhost:3000/widgets/recurse"
+    ...
+    recursion 1044
+    recursion 1045
+    recursion 1046
+    stack level too deep
+    RUBY_FIBER_VM_STACK_SIZE: nil
+
+By default, the stack is full after a bit more than 1000 recursions.
+
+Now, terminate your rails server and run it again with a 10M stack size:
+
+    RUBY_FIBER_VM_STACK_SIZE=$(ruby -e 'puts 10 * 1024 * 1024 # 10MB') rails s
+
+And run the same curl command again:
+
+    curl -i "http://localhost:3000/widgets/recurse"
+    ...
+    recursion 87333
+    recursion 87334
+    recursion 87335
+    stack level too deep
+    RUBY_FIBER_VM_STACK_SIZE: "10485760"
+
+The limit is now reached after more that 80k recursions, probably a lot more than
+needed to run any rails app.
+
+Welcome to async rails !
+
+-- HERE FOLLOWS THE ORIGINAL README BEFORE ruby 2.0 --
 
 Important warning:
   
